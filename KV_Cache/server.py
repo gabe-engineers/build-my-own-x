@@ -16,7 +16,8 @@ from pydantic import BaseModel, ConfigDict, Field
 import uvicorn
 
 from config import CONFIG_PATH_ENV_VAR, RuntimeConfig, load_runtime_config
-from model import GPT2, resolve_target_device
+from device import resolve_target_device
+from model import GPT2
 
 
 class ResponsesCreateRequest(BaseModel):

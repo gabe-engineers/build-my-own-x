@@ -1,0 +1,97 @@
+name: cpu-hf-cache-comparison
+runs_dir: .runs/cpu-hf-cache-comparison
+
+defaults:
+  provider: vllm
+  model: openai-community/gpt2
+  traffic_type: constant
+  traffic_volume: 3
+  input_size_tokens: 500
+  target:
+    url: http://127.0.0.1:8000
+
+prompt_between_runs: false
+
+comparison:
+  title: CPU HF vs Custom KV Cache Comparison
+  output: .runs/cpu-hf-cache-comparison/cache-toggle-comparison.png
+  metrics:
+    - tokens_per_second
+    - avg_ttft_seconds
+
+runs:
+  - name: hf-cache-off-input-500
+    setup:
+      commands:
+        - mkdir -p .runs/cpu-hf-cache-comparison
+        - pkill -f "python hf_server.py --port 8000" || true
+        - pkill -f "python server.py --port 8000" || true
+        - >-
+          printf 'kv_cache: false\ntarget_device: cpu\n'
+          > .benchpress.runtime.yaml
+        - >-
+          uv run python hf_server.py --port 8000 --config .benchpress.runtime.yaml
+          > .runs/cpu-hf-cache-comparison/hf-cache-off.log 2>&1 &
+        - until curl -sf http://127.0.0.1:8000/healthz >/dev/null; do sleep 1; done
+        - >-
+          curl -sf http://127.0.0.1:8000/v1/completions
+          -H 'Content-Type: application/json'
+          -d '{"model":"openai-community/gpt2","prompt":"warmup","max_tokens":4}'
+          >/dev/null
+
+  - name: hf-cache-on-input-500
+    setup:
+      commands:
+        - mkdir -p .runs/cpu-hf-cache-comparison
+        - pkill -f "python hf_server.py --port 8000" || true
+        - pkill -f "python server.py --port 8000" || true
+        - >-
+          printf 'kv_cache: true\ntarget_device: cpu\n'
+          > .benchpress.runtime.yaml
+        - >-
+          uv run python hf_server.py --port 8000 --config .benchpress.runtime.yaml
+          > .runs/cpu-hf-cache-comparison/hf-cache-on.log 2>&1 &
+        - until curl -sf http://127.0.0.1:8000/healthz >/dev/null; do sleep 1; done
+        - >-
+          curl -sf http://127.0.0.1:8000/v1/completions
+          -H 'Content-Type: application/json'
+          -d '{"model":"openai-community/gpt2","prompt":"warmup","max_tokens":4}'
+          >/dev/null
+
+  - name: my-cache-off
+    setup:
+      commands:
+        - mkdir -p .runs/cpu-hf-cache-comparison
+        - pkill -f "python hf_server.py --port 8000" || true
+        - pkill -f "python server.py --port 8000" || true
+        - >-
+          printf 'kv_cache: false\ntarget_device: cpu\n'
+          > .benchpress.runtime.yaml
+        - >-
+          uv run python server.py --port 8000 --config .benchpress.runtime.yaml
+          > .runs/cpu-hf-cache-comparison/my-cache-off.log 2>&1 &
+        - until curl -sf http://127.0.0.1:8000/healthz >/dev/null; do sleep 1; done
+        - >-
+          curl -sf http://127.0.0.1:8000/v1/completions
+          -H 'Content-Type: application/json'
+          -d '{"model":"openai-community/gpt2","prompt":"warmup","max_tokens":4}'
+          >/dev/null
+
+  - name: my-cache-on
+    setup:
+      commands:
+        - mkdir -p .runs/cpu-hf-cache-comparison
+        - pkill -f "python hf_server.py --port 8000" || true
+        - pkill -f "python server.py --port 8000" || true
+        - >-
+          printf 'kv_cache: true\ntarget_device: cpu\n'
+          > .benchpress.runtime.yaml
+        - >-
+          uv run python server.py --port 8000 --config .benchpress.runtime.yaml
+          > .runs/cpu-hf-cache-comparison/my-cache-on.log 2>&1 &
+        - until curl -sf http://127.0.0.1:8000/healthz >/dev/null; do sleep 1; done
+        - >-
+          curl -sf http://127.0.0.1:8000/v1/completions
+          -H 'Content-Type: application/json'
+          -d '{"model":"openai-community/gpt2","prompt":"warmup","max_tokens":4}'
+          >/dev/null

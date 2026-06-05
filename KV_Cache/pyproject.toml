@@ -11,3 +11,8 @@ dependencies = [
     "torch>=2.12.0",
     "transformers>=5.9.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.410",
+]

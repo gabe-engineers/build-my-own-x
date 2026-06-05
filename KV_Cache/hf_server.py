@@ -14,7 +14,9 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import uvicorn
 
 from config import CONFIG_PATH_ENV_VAR, RuntimeConfig, load_runtime_config
-from model import GenerationResult, GenerationTimings, resolve_target_device, synchronize_device
+from device import resolve_target_device, synchronize_device
+from metrics import GenerationTimings
+from model import GenerationResult
 from server import (
     CompletionChoice,
     CompletionUsage,

@@ -1,11 +1,13 @@
 from dataclasses import dataclass
 import math
-import time
-from typing import Callable, Dict
+from typing import Dict
 
 import torch
 import torch.nn.functional as F
 from transformers import AutoModelForCausalLM, AutoTokenizer
+
+from device import resolve_target_device
+from metrics import GenerationTimings, measure_inference_ms
 
 
 @dataclass
@@ -21,104 +23,6 @@ class GenerationResult:
     prompt_tokens: int
     output_tokens: int
     timings: "GenerationTimings"
-
-
-@dataclass
-class GenerationTimings:
-    prefill_ms: float = 0.0
-    decode_ms: float = 0.0
-    prefill_calls: int = 0
-    decode_calls: int = 0
-
-    @property
-    def total_ms(self) -> float:
-        return self.prefill_ms + self.decode_ms
-
-    def as_dict(self) -> dict[str, float | int]:
-        average_prefill_ms = self.prefill_ms / self.prefill_calls if self.prefill_calls else 0.0
-        average_decode_ms = self.decode_ms / self.decode_calls if self.decode_calls else 0.0
-        return {
-            "prefill_ms": self.prefill_ms,
-            "decode_ms": self.decode_ms,
-            "total_ms": self.total_ms,
-            "prefill_calls": self.prefill_calls,
-            "decode_calls": self.decode_calls,
-            "average_prefill_ms": average_prefill_ms,
-            "average_decode_ms": average_decode_ms,
-        }
-
-
-def resolve_target_device(target_device: str) -> str:
-    normalized_device = target_device.strip().lower()
-
-    if normalized_device == "auto":
-        if torch.cuda.is_available() and cuda_device_is_supported("cuda"):
-            return "cuda"
-        if torch.backends.mps.is_available():
-            return "mps"
-        return "cpu"
-
-    if normalized_device == "cpu":
-        return "cpu"
-
-    if normalized_device == "mps":
-        if not torch.backends.mps.is_available():
-            raise ValueError("target_device `mps` was requested, but MPS is not available.")
-        return "mps"
-
-    if normalized_device == "cuda" or normalized_device.startswith("cuda:"):
-        if not torch.cuda.is_available():
-            raise ValueError(f"target_device `{normalized_device}` was requested, but CUDA is not available.")
-        if not cuda_device_is_supported(normalized_device):
-            capability = torch.cuda.get_device_capability(normalized_device)
-            arch_list = ", ".join(torch.cuda.get_arch_list()) or "unknown"
-            raise ValueError(
-                f"target_device `{normalized_device}` was requested, but this PyTorch build does not support "
-                f"CUDA capability sm_{capability[0]}{capability[1]}. Supported architectures: {arch_list}."
-            )
-        return normalized_device
-
-    raise ValueError(f"Unsupported target_device `{target_device}`. Use auto, cpu, mps, cuda, or cuda:N.")
-
-
-def cuda_device_is_supported(device: str) -> bool:
-    supported_arches = torch.cuda.get_arch_list()
-    if not supported_arches:
-        return True
-
-    capability = torch.cuda.get_device_capability(device)
-    for arch in supported_arches:
-        if "_" not in arch:
-            continue
-        _, version = arch.split("_", maxsplit=1)
-        if len(version) < 2 or not version.isdigit():
-            continue
-        major = int(version[:-1])
-        minor = int(version[-1])
-        if capability[0] == major and capability[1] >= minor:
-            return True
-
-    return False
-
-
-def synchronize_device(device: str):
-    if device.startswith("cuda"):
-        torch.cuda.synchronize(device=device)
-        return
-
-    if device == "mps" and hasattr(torch, "mps") and torch.backends.mps.is_available():
-        torch.mps.synchronize()
-
-
-def measure_inference_ms(operation: Callable[[], torch.Tensor], device: str) -> tuple[torch.Tensor, float]:
-    synchronize_device(device)
-    started_at = time.perf_counter()
-    output = operation()
-    synchronize_device(device)
-    elapsed_ms = (time.perf_counter() - started_at) * 1000
-    return output, elapsed_ms
-
-
 def layer_norm(activations: torch.Tensor, ln: WeightsAndBiases):
     eps = 1e-05
     mean = activations.mean(dim=-1, keepdim=True)
@@ -202,7 +106,7 @@ class GPT2:
 
     def generate_with_metadata(self, prompt: str, max_new_tokens: int = 64, request_id: str = "") -> GenerationResult:
         input_tokens = self.tokenizer(prompt, return_tensors="pt").to(self.device).input_ids.squeeze(0)
-        max_total_tokens = min(1024, input_tokens.shape[0] + max_new_tokens)
+        max_total_tokens = min(self.n_positions, input_tokens.shape[0] + max_new_tokens)
         all_tokens = input_tokens
         timings = GenerationTimings()
 
@@ -210,8 +114,13 @@ class GPT2:
         with torch.no_grad():
             kv_cache = None
             if self.use_kv_cache:
-                kv_cache = self.state["transformer.wte.weight"].new_empty(
-                    (max_total_tokens, len(self.transformer_blocks), self.embedding_dim * 2)
+                # Keep cached keys/values colocated with the model activations.
+                kv_cache = torch.empty(
+                    max_total_tokens,
+                    len(self.transformer_blocks),
+                    self.embedding_dim * 2,
+                    device=self.device,
+                    dtype=self.state["transformer.wte.weight"].dtype,
                 )
             while all_tokens.shape[0] < max_total_tokens:
                 if self.use_kv_cache:
