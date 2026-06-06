@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 import math
-from typing import Dict
+from typing import Any, Dict
 
 import torch
 import torch.nn.functional as F
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from device import resolve_target_device
+from device import get_accelerator_device
 from metrics import GenerationTimings, measure_inference_ms
 
 
@@ -34,15 +34,15 @@ def layer_norm(activations: torch.Tensor, ln: WeightsAndBiases):
 class GPT2:
     def __init__(
         self,
-        model_name: str = "sshleifer/tiny-gpt2",
+        model_name: str = "openai-community/gpt2",
         *,
         use_kv_cache: bool = True,
         target_device: str = "auto",
     ):
         self.use_kv_cache = use_kv_cache
-        self.device = resolve_target_device(target_device)
+        self.device = get_accelerator_device() if target_device == "auto" else target_device
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        pretrained_model = AutoModelForCausalLM.from_pretrained(model_name)
+        pretrained_model: Any = AutoModelForCausalLM.from_pretrained(model_name)
         pretrained_model = pretrained_model.to(device=self.device)
         pretrained_model.eval()
         self.state = pretrained_model.state_dict()
@@ -50,7 +50,7 @@ class GPT2:
         self.embedding_dim = config.n_embd
         transformer_layers = config.n_layer
         self.n_positions = config.n_positions
-        self.transformer_blocks = [Transformer(self.state, layer_id, self.device, config.n_head) for layer_id in range(transformer_layers)]
+        self.transformer_blocks = [Transformer(self.state, layer_id, config.n_head) for layer_id in range(transformer_layers)]
 
     def poll_token_from_logits(self, logits: torch.Tensor):
         if logits.ndim > 1:
@@ -65,7 +65,6 @@ class GPT2:
 
         for transformer_block in self.transformer_blocks:
             hs = transformer_block.prefill(hs, kv_cache)
-
 
         hs = layer_norm(
             hs,
@@ -124,21 +123,21 @@ class GPT2:
                 )
             while all_tokens.shape[0] < max_total_tokens:
                 if self.use_kv_cache:
+                    assert kv_cache is not None
                     if all_tokens.shape[0] == input_tokens.shape[0]:
                         logits, prefill_ms = measure_inference_ms(
-                            lambda: self.prefill(all_tokens, kv_cache), self.device
+                            lambda: self.prefill(all_tokens, kv_cache)
                         )
                         timings.prefill_ms += prefill_ms
                         timings.prefill_calls += 1
                     else:
                         logits, decode_ms = measure_inference_ms(
-                            lambda: self.decode(all_tokens[-1:], all_tokens.shape[0] - 1, kv_cache),
-                            self.device,
+                            lambda: self.decode(all_tokens[-1:], all_tokens.shape[0] - 1, kv_cache)
                         )
                         timings.decode_ms += decode_ms
                         timings.decode_calls += 1
                 else:
-                    logits, prefill_ms = measure_inference_ms(lambda: self.prefill(all_tokens), self.device)
+                    logits, prefill_ms = measure_inference_ms(lambda: self.prefill(all_tokens))
                     timings.prefill_ms += prefill_ms
                     timings.prefill_calls += 1
 
@@ -161,7 +160,7 @@ class GPT2:
 
 
 class Transformer:
-    def __init__(self, model_weights: Dict[str, torch.Tensor], transformer_layer_id: int, device: str, n_heads: int):
+    def __init__(self, model_weights: Dict[str, torch.Tensor], transformer_layer_id: int, n_heads: int):
         self.model_weights = model_weights
         self.ln1 = WeightsAndBiases(
             model_weights[f"transformer.h.{transformer_layer_id}.ln_1.weight"],
@@ -189,15 +188,7 @@ class Transformer:
         )
         self.n_heads = n_heads
         self.layer_id = transformer_layer_id
-        self.device = device
-
-    def attention_head(self, k: torch.Tensor, v: torch.Tensor, q: torch.Tensor):
-        attention_scores = (q @ k.T) / math.sqrt(k.shape[-1])
-        tokens = q.shape[0]
-        mask = torch.ones(tokens, tokens, dtype=torch.bool, device=self.device).triu(diagonal=1)
-        attention_scores = attention_scores.masked_fill(mask, float("-inf"))
-        attention_probs = attention_scores.softmax(dim=-1)
-        return attention_probs @ v
+        self.acc_device = get_accelerator_device() 
 
     def prefill(self, x_input: torch.Tensor, kv_cache: torch.Tensor | None = None):
         x = layer_norm(x_input, self.ln1)
@@ -206,17 +197,23 @@ class Transformer:
         if kv_cache is not None:
             kv = torch.cat((k, v), dim=-1)
             kv_cache[: kv.shape[0], self.layer_id, :] = kv
-        q_head_split = q.view(q.shape[0], self.n_heads, q.shape[-1] // self.n_heads)
-        k_head_split = k.view(k.shape[0], self.n_heads, k.shape[-1] // self.n_heads)
-        v_head_split = v.view(v.shape[0], self.n_heads, v.shape[-1] // self.n_heads)
+        q_head_split = q.view(q.shape[0], self.n_heads, q.shape[-1] // self.n_heads).transpose(0,1)
+        k_head_split = k.view(k.shape[0], self.n_heads, k.shape[-1] // self.n_heads).transpose(0,1)
+        v_head_split = v.view(v.shape[0], self.n_heads, v.shape[-1] // self.n_heads).transpose(0,1)
 
-        # Serial computation per head for simplicity
-        head_outputs = []
-        for head_i in range(self.n_heads): 
-            head_out = self.attention_head(k_head_split[:,head_i, :], v_head_split[:, head_i, :], q_head_split[:, head_i, :])
-            head_outputs.append(head_out)
+        attention_scores = (q_head_split @ k_head_split.mT) / math.sqrt(k_head_split.shape[-1])
+        mask = torch.ones(
+            attention_scores.shape[1],
+            attention_scores.shape[1],
+            dtype=torch.bool,
+            device=attention_scores.device,
+        ).triu(diagonal=1)
+        attention_scores = attention_scores.masked_fill(mask, float("-inf"))
+        attention_probs = attention_scores.softmax(dim=-1)
+        attention_out = attention_probs @ v_head_split
 
-        attention_out = torch.cat(head_outputs, dim=-1)
+        attention_out = attention_out.transpose(0, 1).contiguous()
+        attention_out = attention_out.view(attention_out.shape[0], -1)
         attention_out = attention_out @ self.proj.weights + self.proj.bias
         attention_out = x_input + attention_out
 
@@ -239,17 +236,16 @@ class Transformer:
 
         k, v = kv_cache[: token_position + 1, self.layer_id, :].chunk(2, dim=-1)
 
-        q_head_split = q.view(q.shape[0], self.n_heads, q.shape[-1] // self.n_heads)
-        k_head_split = k.view(k.shape[0], self.n_heads, k.shape[-1] // self.n_heads)
-        v_head_split = v.view(v.shape[0], self.n_heads, v.shape[-1] // self.n_heads)
+        q_head_split = q.view(q.shape[0], self.n_heads, q.shape[-1] // self.n_heads).transpose(0, 1)
+        k_head_split = k.view(k.shape[0], self.n_heads, k.shape[-1] // self.n_heads).transpose(0, 1)
+        v_head_split = v.view(v.shape[0], self.n_heads, v.shape[-1] // self.n_heads).transpose(0, 1)
 
-        # Serial computation per head for simplicity
-        head_outputs = []
-        for head_i in range(self.n_heads):
-            head_out = self.attention_head(k_head_split[:,head_i, :], v_head_split[:, head_i, :], q_head_split[:, head_i, :])
-            head_outputs.append(head_out)
+        attention_scores = (q_head_split @ k_head_split.mT) / math.sqrt(k_head_split.shape[-1])
+        attention_probs = attention_scores.softmax(dim=-1)
+        attention_out = attention_probs @ v_head_split
 
-        attention_out = torch.cat(head_outputs, dim=-1)
+        attention_out = attention_out.transpose(0, 1).contiguous()
+        attention_out = attention_out.view(attention_out.shape[0], -1)
         attention_out = attention_out @ self.proj.weights + self.proj.bias
         attention_out = x_input + attention_out
 

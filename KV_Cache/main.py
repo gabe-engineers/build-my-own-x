@@ -10,11 +10,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--prompt", default=None, help="Prompt to generate from. If omitted, prompt interactively.")
     parser.add_argument(
         "--model-name",
-        default="sshleifer/tiny-gpt2",
+        default="openai-community/gpt2",
         help="Hugging Face model name to load for generation.",
     )
     parser.add_argument("--max-new-tokens", type=int, default=500)
-    parser.add_argument("--target-device", default="auto")
     parser.add_argument("--no-kv-cache", action="store_true", help="Disable the KV cache for this run.")
     parser.add_argument(
         "--compare-kv-cache",
@@ -48,12 +47,11 @@ def run_generation(
     *,
     model_name: str,
     use_kv_cache: bool,
-    target_device: str,
     max_new_tokens: int,
     seed: int,
 ) -> GenerationResult:
     seed_generation(seed)
-    model = GPT2(model_name=model_name, use_kv_cache=use_kv_cache, target_device=target_device)
+    model = GPT2(model_name=model_name, use_kv_cache=use_kv_cache)
     return model.generate_with_metadata(prompt, max_new_tokens=max_new_tokens)
 
 
@@ -82,7 +80,6 @@ def main():
             prompt,
             model_name=args.model_name,
             use_kv_cache=True,
-            target_device=args.target_device,
             max_new_tokens=args.max_new_tokens,
             seed=args.seed,
         )
@@ -90,7 +87,6 @@ def main():
             prompt,
             model_name=args.model_name,
             use_kv_cache=False,
-            target_device=args.target_device,
             max_new_tokens=args.max_new_tokens,
             seed=args.seed,
         )
@@ -114,7 +110,6 @@ def main():
         prompt,
         model_name=args.model_name,
         use_kv_cache=not args.no_kv_cache,
-        target_device=args.target_device,
         max_new_tokens=args.max_new_tokens,
         seed=args.seed,
     )

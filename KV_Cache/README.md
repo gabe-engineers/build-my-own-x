@@ -47,7 +47,7 @@ Example request:
 curl http://127.0.0.1:8000/v1/responses \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "sshleifer/tiny-gpt2",
+    "model": "openai-community/gpt2",
     "input": "Tell me a short story about a cache."
   }'
 ```

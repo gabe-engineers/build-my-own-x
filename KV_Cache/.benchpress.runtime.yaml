@@ -1,2 +1,2 @@
-kv_cache: false
+kv_cache: true
 target_device: cpu

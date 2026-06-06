@@ -14,7 +14,6 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import uvicorn
 
 from config import CONFIG_PATH_ENV_VAR, RuntimeConfig, load_runtime_config
-from device import resolve_target_device, synchronize_device
 from metrics import GenerationTimings
 from model import GenerationResult
 from server import (
@@ -37,13 +36,13 @@ from server import (
 class HFTransformer:
     def __init__(
         self,
-        model_name: str = "sshleifer/tiny-gpt2",
+        model_name: str = "openai-community/gpt2",
         *,
         use_kv_cache: bool = True,
         target_device: str = "auto",
     ):
         self.use_kv_cache = use_kv_cache
-        self.device = resolve_target_device(target_device)
+        self.device = target_device
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModelForCausalLM.from_pretrained(model_name).to(device=self.device)
         self.model.eval()
@@ -81,10 +80,8 @@ class HFTransformer:
 
         timings = GenerationTimings()
         with torch.no_grad():
-            synchronize_device(self.device)
             started_at = time.perf_counter()
             output_ids = self.model.generate(**encoded, **generation_kwargs)
-            synchronize_device(self.device)
             timings.decode_ms = (time.perf_counter() - started_at) * 1000
             timings.decode_calls = 1
 
@@ -266,7 +263,7 @@ def build_runtime_config(config_path: str | None) -> RuntimeConfig:
 
 def create_app() -> FastAPI:
     runtime_config = build_runtime_config(os.environ.get(CONFIG_PATH_ENV_VAR))
-    resolved_target_device = resolve_target_device(runtime_config.target_device)
+    resolved_target_device = runtime_config.target_device
     app = FastAPI(title="HF Transformers Benchmark API")
     app.state.runtime_config = runtime_config
     app.state.resolved_target_device = str(resolved_target_device)

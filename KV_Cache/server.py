@@ -16,7 +16,6 @@ from pydantic import BaseModel, ConfigDict, Field
 import uvicorn
 
 from config import CONFIG_PATH_ENV_VAR, RuntimeConfig, load_runtime_config
-from device import resolve_target_device
 from model import GPT2
 
 
@@ -362,7 +361,7 @@ def build_runtime_config(config_path: str | None) -> RuntimeConfig:
 
 def create_app() -> FastAPI:
     runtime_config = build_runtime_config(os.environ.get(CONFIG_PATH_ENV_VAR))
-    resolved_target_device = resolve_target_device(runtime_config.target_device)
+    resolved_target_device = runtime_config.target_device
     app = FastAPI(title="KV Cache API")
     app.state.runtime_config = runtime_config
     app.state.resolved_target_device = str(resolved_target_device)

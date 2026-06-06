@@ -4,9 +4,6 @@ from typing import Callable
 
 import torch
 
-from device import synchronize_device
-
-
 @dataclass
 class GenerationTimings:
     prefill_ms: float = 0.0
@@ -31,10 +28,8 @@ class GenerationTimings:
             "average_decode_ms": average_decode_ms,
         }
 
-def measure_inference_ms(operation: Callable[[], torch.Tensor], device: str) -> tuple[torch.Tensor, float]:
-    synchronize_device(device)
+def measure_inference_ms(operation: Callable[[], torch.Tensor]) -> tuple[torch.Tensor, float]:
     started_at = time.perf_counter()
     output = operation()
-    synchronize_device(device)
     elapsed_ms = (time.perf_counter() - started_at) * 1000
     return output, elapsed_ms
