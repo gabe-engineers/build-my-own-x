@@ -1,0 +1,5 @@
+WRN 2026-08-19T13:08:06.043 ?.17103    server_start:197: Failed to start server: operation not permitted: /var/folders/p7/j0v114gx2vzb0gbxnm8wgrxc0000gn/T/nvim.gabriel/EUJUVE/nvim.17103.0
+WRN 2026-08-19T13:08:06.080 ?.17094    server_start:197: Failed to start server: operation not permitted: /var/folders/p7/j0v114gx2vzb0gbxnm8wgrxc0000gn/T/nvim.gabriel/kR70I5/nvim.17094.0
+WRN 2026-08-19T13:08:20.479 ?.17121    server_start:197: Failed to start server: operation not permitted: /var/folders/p7/j0v114gx2vzb0gbxnm8wgrxc0000gn/T/nvim.gabriel/MGMSbO/nvim.17121.0
+WRN 2026-08-19T13:08:31.699 ?.17136    server_start:197: Failed to start server: operation not permitted: /var/folders/p7/j0v114gx2vzb0gbxnm8wgrxc0000gn/T/nvim.gabriel/Pgi5W8/nvim.17136.0
+WRN 2026-08-19T13:16:23.333 ?.28594    server_start:197: Failed to start server: operation not permitted: /var/folders/p7/j0v114gx2vzb0gbxnm8wgrxc0000gn/T/nvim.gabriel/PrQeyW/nvim.28594.0

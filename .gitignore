@@ -1,0 +1,16 @@
+.DS_Store
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+
+# Common Python tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local runtime config for the KV cache exercise
+KV_Cache/config.yaml
