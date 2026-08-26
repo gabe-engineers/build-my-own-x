@@ -1,3 +1,6 @@
+`include "8bit-adder.v"
+`include "alu_ops.vh"
+
 module alu_8bit (
     input [2:0] op,
     input [7:0] a,
@@ -26,25 +29,14 @@ module alu_8bit (
 
   always @(*) begin
     case (op)
-      // ADD
-      3'b000: out = add_out;
-
-      // SUB
-      3'b001: out = sub_out;
-
-      // AND
-      3'b010: out = a & b;
-
-      // OR
-      3'b011: out = a | b;
-      // XOR
-      3'b100: out = a ^ b;
-      // SHL
-      3'b101: out = a << b;
-      // SHR
-      3'b110: out = a >> b;
-      // ZERO
-      3'b111: out = 8'b00000000;
+      `ALU_OP_ADD: out = add_out;
+      `ALU_OP_SUB: out = sub_out;
+      `ALU_OP_AND: out = a & b;
+      `ALU_OP_OR: out = a | b;
+      `ALU_OP_XOR: out = a ^ b;
+      `ALU_OP_SHL: out = a << b;
+      `ALU_OP_SHR: out = a >> b;
+      `ALU_OP_ZEROS: out = 8'd0;
     endcase
   end
 
@@ -59,7 +51,7 @@ module subtracter_8bit (
   wire [7:0] b_twos_compliment;
   adder_8bit twos_compliment_adder (
       b_ones_compliment,
-      8'b00000001,
+      8'd1,
       b_twos_compliment
   );
   adder_8bit adder (

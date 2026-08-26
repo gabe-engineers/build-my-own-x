@@ -1,3 +1,5 @@
+`include "add.v"
+
 module adder_8bit (
     input  [7:0] a,
     input  [7:0] b,

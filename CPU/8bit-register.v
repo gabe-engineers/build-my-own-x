@@ -7,8 +7,8 @@ module register_8bit (
 );
 
   always @(posedge clk) begin
-    if (reset) data_out = 8'b0;
-    else if (write_enable) data_out = data_in;
+    if (reset) data_out <= 8'b0;
+    else if (write_enable) data_out <= data_in;
   end
 
 endmodule
