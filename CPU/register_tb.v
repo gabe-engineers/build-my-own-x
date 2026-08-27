@@ -1,12 +1,14 @@
-module register_8bit_tb;
+`include "register.v"
+
+module register_16bit_tb;
 
   reg reset;
   reg write_enable;
   reg clk;
-  reg [7:0] data_in;
-  wire [7:0] data_out;
+  reg [15:0] data_in;
+  wire [15:0] data_out;
 
-  register_8bit dut (
+  register_16bit dut (
       clk,
       reset,
       write_enable,
@@ -14,13 +16,12 @@ module register_8bit_tb;
       data_out
   );
 
-  task test_case(input tc_reset, input tc_write_enable, input [7:0] tc_data_in,
-                 input [7:0] expected_out);
+  task test_case(input tc_reset, input tc_write_enable, input [15:0] tc_data_in,
+                 input [15:0] expected_out);
     begin
       reset        = tc_reset;
       write_enable = tc_write_enable;
       data_in      = tc_data_in;
-
       clk          = 1'b0;
       #10;
       clk = 1'b1;
@@ -37,31 +38,31 @@ module register_8bit_tb;
     clk = 0;
 
     // Reset should initialize register to zero
-    test_case(1'b1, 1'b0, 8'hAA, 8'h00);
+    test_case(1'b1, 1'b0, 16'hAAAA, 16'h0000);
 
     // Normal write
-    test_case(1'b0, 1'b1, 8'h42, 8'h42);
+    test_case(1'b0, 1'b1, 16'h4242, 16'h4242);
 
     // Write disabled: should retain old value
-    test_case(1'b0, 1'b0, 8'h99, 8'h42);
+    test_case(1'b0, 1'b0, 16'h9999, 16'h4242);
 
     // Write another value
-    test_case(1'b0, 1'b1, 8'hFF, 8'hFF);
+    test_case(1'b0, 1'b1, 16'hFFFF, 16'hFFFF);
 
     // Hold again
-    test_case(1'b0, 1'b0, 8'h00, 8'hFF);
+    test_case(1'b0, 1'b0, 16'h0000, 16'hFFFF);
 
     // Writing zero should actually write zero
-    test_case(1'b0, 1'b1, 8'h00, 8'h00);
+    test_case(1'b0, 1'b1, 16'h0000, 16'h0000);
 
     // Another arbitrary pattern
-    test_case(1'b0, 1'b1, 8'b10101010, 8'b10101010);
+    test_case(1'b0, 1'b1, 16'b1010101010101010, 16'b1010101010101010);
 
     // Reset should override write_enable
-    test_case(1'b1, 1'b1, 8'hFF, 8'h00);
+    test_case(1'b1, 1'b1, 16'hFFFF, 16'h0000);
 
     // After reset, disabled write should retain zero
-    test_case(1'b0, 1'b0, 8'hCC, 8'h00);
+    test_case(1'b0, 1'b0, 16'hCCCC, 16'h0000);
 
     $display("Tests finished");
     $finish;

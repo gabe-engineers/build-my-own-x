@@ -50,3 +50,26 @@ module full_adder (
       carry_out
   );
 endmodule
+
+module adder_16bit (
+    input  [15:0] a,
+    input  [15:0] b,
+    output [15:0] out
+);
+  wire [15:0] carry;
+
+  genvar i;
+
+  generate
+    for (i = 0; i < 16; i = i + 1) begin : ADDERS
+      full_adder b1 (
+          a[i],
+          b[i],
+          i > 0 ? carry[i-1] : 1'b0,
+          out[i],
+          carry[i]
+      );
+    end
+  endgenerate
+
+endmodule

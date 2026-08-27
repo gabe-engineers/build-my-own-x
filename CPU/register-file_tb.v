@@ -6,11 +6,11 @@ module register_file_tb;
   reg reset;
   reg write_enable;
   reg [2:0] write_addr;
-  reg [7:0] write_data;
+  reg [15:0] write_data;
   reg [2:0] read_addr_a;
   reg [2:0] read_addr_b;
-  wire [7:0] read_data_a;
-  wire [7:0] read_data_b;
+  wire [15:0] read_data_a;
+  wire [15:0] read_data_b;
 
   register_file dut (
       .clk(clk),
@@ -24,9 +24,9 @@ module register_file_tb;
       .read_data_b(read_data_b)
   );
 
-  task test_case(input [7:0] test_number, input tc_reset, input tc_write_enable,
-                 input [2:0] tc_write_addr, input [7:0] tc_write_data, input [2:0] tc_read_addr_a,
-                 input [2:0] tc_read_addr_b, input [7:0] expected_a, input [7:0] expected_b);
+  task test_case(input [15:0] test_number, input tc_reset, input tc_write_enable,
+                 input [2:0] tc_write_addr, input [15:0] tc_write_data, input [2:0] tc_read_addr_a,
+                 input [2:0] tc_read_addr_b, input [15:0] expected_a, input [15:0] expected_b);
     begin
       reset        = tc_reset;
       write_enable = tc_write_enable;
@@ -50,50 +50,51 @@ module register_file_tb;
   endtask
 
   initial begin
+
     // Clear everything first
     test_case(.test_number(1), .tc_reset(1), .tc_write_enable(0), .tc_write_addr(3'd0),
-              .tc_write_data(8'h00), .tc_read_addr_a(3'd0), .tc_read_addr_b(3'd7),
-              .expected_a(8'h00), .expected_b(8'h00));
+              .tc_write_data(16'h0000), .tc_read_addr_a(3'd0), .tc_read_addr_b(3'd7),
+              .expected_a(16'h0000), .expected_b(16'h0000));
 
     // Write register 3
     test_case(.test_number(2), .tc_reset(0), .tc_write_enable(1), .tc_write_addr(3'd3),
-              .tc_write_data(8'h42), .tc_read_addr_a(3'd3), .tc_read_addr_b(3'd0),
-              .expected_a(8'h42), .expected_b(8'h00));
+              .tc_write_data(16'h4242), .tc_read_addr_a(3'd3), .tc_read_addr_b(3'd0),
+              .expected_a(16'h4242), .expected_b(16'h0000));
 
     // Write register 6; register 3 must survive
     test_case(.test_number(3), .tc_reset(0), .tc_write_enable(1), .tc_write_addr(3'd6),
-              .tc_write_data(8'hAA), .tc_read_addr_a(3'd3), .tc_read_addr_b(3'd6),
-              .expected_a(8'h42), .expected_b(8'hAA));
+              .tc_write_data(16'hAAAA), .tc_read_addr_a(3'd3), .tc_read_addr_b(3'd6),
+              .expected_a(16'h4242), .expected_b(16'hAAAA));
 
     // Read them in the opposite order
     test_case(.test_number(4), .tc_reset(0), .tc_write_enable(0), .tc_write_addr(3'd0),
-              .tc_write_data(8'hFF), .tc_read_addr_a(3'd6), .tc_read_addr_b(3'd3),
-              .expected_a(8'hAA), .expected_b(8'h42));
+              .tc_write_data(16'hFFFF), .tc_read_addr_a(3'd6), .tc_read_addr_b(3'd3),
+              .expected_a(16'hAAAA), .expected_b(16'h4242));
 
     // Disabled write must do nothing
     test_case(.test_number(5), .tc_reset(0), .tc_write_enable(0), .tc_write_addr(3'd3),
-              .tc_write_data(8'h99), .tc_read_addr_a(3'd3), .tc_read_addr_b(3'd6),
-              .expected_a(8'h42), .expected_b(8'hAA));
+              .tc_write_data(16'h9999), .tc_read_addr_a(3'd3), .tc_read_addr_b(3'd6),
+              .expected_a(16'h4242), .expected_b(16'hAAAA));
 
     // Overwrite one register only
     test_case(.test_number(6), .tc_reset(0), .tc_write_enable(1), .tc_write_addr(3'd3),
-              .tc_write_data(8'hFF), .tc_read_addr_a(3'd3), .tc_read_addr_b(3'd6),
-              .expected_a(8'hFF), .expected_b(8'hAA));
+              .tc_write_data(16'hFFFF), .tc_read_addr_a(3'd3), .tc_read_addr_b(3'd6),
+              .expected_a(16'hFFFF), .expected_b(16'hAAAA));
 
     // Both read ports can read the same register
     test_case(.test_number(7), .tc_reset(0), .tc_write_enable(0), .tc_write_addr(3'd0),
-              .tc_write_data(8'h00), .tc_read_addr_a(3'd6), .tc_read_addr_b(3'd6),
-              .expected_a(8'hAA), .expected_b(8'hAA));
+              .tc_write_data(16'h0000), .tc_read_addr_a(3'd6), .tc_read_addr_b(3'd6),
+              .expected_a(16'hAAAA), .expected_b(16'hAAAA));
 
     // Reset clears registers regardless of previous contents
     test_case(.test_number(8), .tc_reset(1), .tc_write_enable(0), .tc_write_addr(3'd0),
-              .tc_write_data(8'h00), .tc_read_addr_a(3'd3), .tc_read_addr_b(3'd6),
-              .expected_a(8'h00), .expected_b(8'h00));
+              .tc_write_data(16'h0000), .tc_read_addr_a(3'd3), .tc_read_addr_b(3'd6),
+              .expected_a(16'h0000), .expected_b(16'h0000));
 
     // Reset should beat a simultaneous write
     test_case(.test_number(9), .tc_reset(1), .tc_write_enable(1), .tc_write_addr(3'd5),
-              .tc_write_data(8'hCC), .tc_read_addr_a(3'd5), .tc_read_addr_b(3'd6),
-              .expected_a(8'h00), .expected_b(8'h00));
+              .tc_write_data(16'hCCCC), .tc_read_addr_a(3'd5), .tc_read_addr_b(3'd6),
+              .expected_a(16'h0000), .expected_b(16'h0000));
 
     $finish;
   end
