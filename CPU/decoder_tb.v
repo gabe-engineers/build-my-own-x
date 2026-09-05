@@ -4,9 +4,9 @@ module decoder_tb;
 
   reg  [15:0] instruction_data;
   wire [ 4:0] opcode;
-  wire [ 7:0] dst_reg;
-  wire [ 7:0] src_reg_a;
-  wire [ 7:0] src_reg_b;
+  wire [ 2:0] dst_reg;
+  wire [ 2:0] src_reg_a;
+  wire [ 2:0] src_reg_b;
   wire [15:0] immediate;
   wire [ 8:0] address;
 
@@ -21,8 +21,8 @@ module decoder_tb;
   );
 
   task test_case(input [7:0] test_number, input [15:0] tc_instruction_data,
-                 input [4:0] expected_opcode, input [7:0] expected_dst_reg,
-                 input [7:0] expected_src_reg_a, input [7:0] expected_reg_b,
+                 input [4:0] expected_opcode, input [2:0] expected_dst_reg,
+                 input [2:0] expected_src_reg_a, input [2:0] expected_reg_b,
                  input [15:0] expected_immediate, input [8:0] expected_address);
     begin
       instruction_data = tc_instruction_data;

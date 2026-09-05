@@ -1,3 +1,9 @@
+# Specs
+
+Supports 9 bits for addressing memory. Word addressable only (not byte addressable), word size is 16 bits.
+ 
+Number of registers: 8 16-bit registers
+
 # Instruction Set Architecture
 
 - LDI rd immediate

@@ -3,9 +3,9 @@
 module decoder (
     input [15:0] instruction_data,
     output [4:0] opcode,
-    output reg [7:0] dst_reg,
-    output reg [7:0] src_reg_a,
-    output reg [7:0] src_reg_b,
+    output reg [2:0] dst_reg,
+    output reg [2:0] src_reg_a,
+    output reg [2:0] src_reg_b,
     output reg [15:0] immediate,
     output reg [8:0] address
 );
@@ -13,9 +13,9 @@ module decoder (
   assign opcode = instruction_data[15:12];
 
   always @(*) begin
-    dst_reg   = 8'b0;
-    src_reg_a = 8'b0;
-    src_reg_b = 8'b0;
+    dst_reg   = 3'b000;
+    src_reg_a = 3'b000;
+    src_reg_b = 3'b000;
     immediate = 16'b0;
     address   = 9'b0;
 
