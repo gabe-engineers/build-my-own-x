@@ -1,15 +1,14 @@
 module cpu (
     input wire clk,
     input wire reset,
-
+    input  wire [15:0] mem_read_data,
     output wire [ 8:0] mem_address,
     output wire [15:0] mem_write_data,
     output wire        mem_write_enable,
-    input  wire [15:0] mem_read_data,
-
     output wire halted
 );
+  datapath_16bit datapath ();
 
-  control_fsm fsm ();
+  control_fsm fsm (.mem_data(mem_read_data));
 
 endmodule
