@@ -1,9 +1,9 @@
 module register_16bit (
-    input  wire        clk,
-    input  wire        reset,
-    input  wire        write_enable,
-    input  wire [15:0] data_in,
-    output reg  [15:0] data_out
+  input  wire        clk,
+  input  wire        reset,
+  input  wire        write_enable,
+  input  wire [15:0] data_in,
+  output reg  [15:0] data_out
 );
 
   always @(posedge clk) begin

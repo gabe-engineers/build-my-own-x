@@ -6,10 +6,10 @@ module alu_16bit_tb;
   reg  [15:0] b;
   wire [15:0] out;
   alu_16bit dut (
-      op,
-      a,
-      b,
-      out
+    op,
+    a,
+    b,
+    out
   );
 
   task test_case(input [3:0] op, input [15:0] a, input [15:0] b, input [15:0] expected_out);

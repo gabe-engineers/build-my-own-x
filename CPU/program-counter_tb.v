@@ -2,20 +2,20 @@
 
 module program_counter_tb;
 
-  reg clk;
-  reg reset;
-  reg advance;
-  reg write_enable;
-  reg [15:0] write_data;
+  reg         clk;
+  reg         reset;
+  reg         advance;
+  reg         write_enable;
+  reg  [15:0] write_data;
   wire [15:0] data_out;
 
   program_counter dut (
-      .clk(clk),
-      .reset(reset),
-      .advance(advance),
-      .write_enable(write_enable),
-      .write_data(write_data),
-      .data_out(data_out)
+    .clk         (clk),
+    .reset       (reset),
+    .advance     (advance),
+    .write_enable(write_enable),
+    .write_data  (write_data),
+    .data_out    (data_out)
   );
 
 
@@ -24,10 +24,10 @@ module program_counter_tb;
 
     begin
 
-      reset = tc_reset;
-      advance = tc_advance;
+      reset        = tc_reset;
+      advance      = tc_advance;
       write_enable = tc_write_enable;
-      write_data = tc_write_data;
+      write_data   = tc_write_data;
 
       clk = 0;
       #10;

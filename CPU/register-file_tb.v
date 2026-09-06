@@ -2,26 +2,26 @@
 
 module register_file_tb;
 
-  reg clk;
-  reg reset;
-  reg write_enable;
-  reg [2:0] write_addr;
-  reg [15:0] write_data;
-  reg [2:0] read_addr_a;
-  reg [2:0] read_addr_b;
+  reg         clk;
+  reg         reset;
+  reg         write_enable;
+  reg  [ 2:0] write_addr;
+  reg  [15:0] write_data;
+  reg  [ 2:0] read_addr_a;
+  reg  [ 2:0] read_addr_b;
   wire [15:0] read_data_a;
   wire [15:0] read_data_b;
 
   register_file dut (
-      .clk(clk),
-      .reset(reset),
-      .write_enable(write_enable),
-      .write_addr(write_addr),
-      .write_data(write_data),
-      .read_addr_a(read_addr_a),
-      .read_addr_b(read_addr_b),
-      .read_data_a(read_data_a),
-      .read_data_b(read_data_b)
+    .clk         (clk),
+    .reset       (reset),
+    .write_enable(write_enable),
+    .write_addr  (write_addr),
+    .write_data  (write_data),
+    .read_addr_a (read_addr_a),
+    .read_addr_b (read_addr_b),
+    .read_data_a (read_data_a),
+    .read_data_b (read_data_b)
   );
 
   task test_case(input [15:0] test_number, input tc_reset, input tc_write_enable,
@@ -35,7 +35,7 @@ module register_file_tb;
       read_addr_a  = tc_read_addr_a;
       read_addr_b  = tc_read_addr_b;
 
-      clk          = 1'b0;
+      clk = 1'b0;
       #10;
       clk = 1'b1;
       #10;

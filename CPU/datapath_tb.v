@@ -1,15 +1,15 @@
 `include "datapath.v"
 
 module datapath_16bit_tb;
-  reg clk;
-  reg reset;
-  reg write_enable;
-  reg writeback_select;
-  reg [2:0] alu_op;
-  reg [15:0] immediate;
-  reg [2:0] read_addr_a;
-  reg [2:0] read_addr_b;
-  reg [2:0] write_addr;
+  reg         clk;
+  reg         reset;
+  reg         write_enable;
+  reg         writeback_select;
+  reg  [ 2:0] alu_op;
+  reg  [15:0] immediate;
+  reg  [ 2:0] read_addr_a;
+  reg  [ 2:0] read_addr_b;
+  reg  [ 2:0] write_addr;
   wire [15:0] out;
 
   // Writeback select codes
@@ -17,16 +17,16 @@ module datapath_16bit_tb;
   localparam WRITEBACK_SELECT_IMMEDIATE = 1;
 
   datapath_16bit dut (
-      clk,
-      reset,
-      write_enable,
-      writeback_select,
-      alu_op,
-      immediate,
-      read_addr_a,
-      read_addr_b,
-      write_addr,
-      out
+    clk,
+    reset,
+    write_enable,
+    writeback_select,
+    alu_op,
+    immediate,
+    read_addr_a,
+    read_addr_b,
+    write_addr,
+    out
   );
 
   task test_case(input [15:0] test_number, input tc_reset, input tc_write_enable,
@@ -35,14 +35,14 @@ module datapath_16bit_tb;
                  input [15:0] expected_out);
     begin
 
-      reset = tc_reset;
-      write_enable = tc_write_enable;
+      reset            = tc_reset;
+      write_enable     = tc_write_enable;
       writeback_select = tc_writeback_select;
-      alu_op = tc_alu_op;
-      immediate = tc_immediate;
-      read_addr_a = tc_read_addr_a;
-      read_addr_b = tc_read_addr_b;
-      write_addr = tc_write_addr;
+      alu_op           = tc_alu_op;
+      immediate        = tc_immediate;
+      read_addr_a      = tc_read_addr_a;
+      read_addr_b      = tc_read_addr_b;
+      write_addr       = tc_write_addr;
 
       clk = 0;
       #10;
@@ -51,7 +51,8 @@ module datapath_16bit_tb;
 
       if (out !== expected_out)
         $display(
-            "FAILED Test #%d - reset: %d, write_enable: %d, writeback_select: %d, alu_op: %d, immediate: %d, read_addr_a: %d, read_addr_b: %d, write_addr: %d | out: %d, expected_out: %d",
+            "FAILED Test #%d - reset: %d, write_enable: %d, writeback_select: %d, alu_op: %d, immediate: %d, read_addr_a: %d, read_addr_b: %d, write_addr: %d | out: %d, expected_out: %d"
+                ,
             test_number,
             reset,
             write_enable,

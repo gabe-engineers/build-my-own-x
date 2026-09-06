@@ -2,18 +2,18 @@
 
 module memory_tb;
 
-  reg clk;
-  reg [8:0] address;
-  reg write_enable;
+  reg        clk;
+  reg [ 8:0] address;
+  reg        write_enable;
   reg [15:0] write_data;
   reg [15:0] read_data;
 
   task test_case(input [7:0] test_number, input [8:0] tc_address, input tc_write_enable,
                  input [15:0] tc_write_data, input [15:0] expected_read_data);
     begin
-      address = tc_address;
+      address      = tc_address;
       write_enable = tc_write_enable;
-      write_data = tc_write_data;
+      write_data   = tc_write_data;
 
       clk = 0;
       #10;
@@ -22,7 +22,8 @@ module memory_tb;
 
       if (read_data != expected_read_data)
         $display(
-            "Failed Test Case #%d - tc_address: %d, tc_write_enable: %d, tc_write_data: %d | read_data: %d, expected_read_data: %d",
+            "Failed Test Case #%d - tc_address: %d, tc_write_enable: %d, tc_write_data: %d | read_data: %d, expected_read_data: %d"
+                ,
             test_number,
             tc_address,
             tc_write_enable,

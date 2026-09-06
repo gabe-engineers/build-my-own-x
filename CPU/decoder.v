@@ -1,13 +1,13 @@
 `include "isa.vh"
 
 module decoder (
-    input [15:0] instruction_data,
-    output [4:0] opcode,
-    output reg [2:0] dst_reg,
-    output reg [2:0] src_reg_a,
-    output reg [2:0] src_reg_b,
-    output reg [15:0] immediate,
-    output reg [8:0] address
+  input      [15:0] instruction_data,
+  output     [ 4:0] opcode,
+  output reg [ 2:0] dst_reg,
+  output reg [ 2:0] src_reg_a,
+  output reg [ 2:0] src_reg_b,
+  output reg [15:0] immediate,
+  output reg [ 8:0] address
 );
 
   assign opcode = instruction_data[15:12];

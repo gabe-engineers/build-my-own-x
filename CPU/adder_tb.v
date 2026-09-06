@@ -1,17 +1,17 @@
 `include "adder.v"
 
 module add_tb;
-  reg  a;
-  reg  b;
+  reg a;
+  reg b;
 
   wire out;
   wire carry_out;
 
   half_adder dut (
-      a,
-      b,
-      out,
-      carry_out
+    a,
+    b,
+    out,
+    carry_out
   );
 
   initial begin
@@ -54,9 +54,9 @@ module adder16bit_tb;
   wire [15:0] out;
 
   adder_16bit dut (
-      a,
-      b,
-      out
+    a,
+    b,
+    out
   );
 
   task test_case(input [15:0] tc_a, input [15:0] tc_b, input [15:0] expected_out);

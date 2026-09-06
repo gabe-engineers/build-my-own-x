@@ -2,10 +2,10 @@
 `include "alu_ops.vh"
 
 module alu_16bit (
-    input [2:0] op,
-    input [15:0] a,
-    input [15:0] b,
-    output reg [15:0] out
+  input      [ 2:0] op,
+  input      [15:0] a,
+  input      [15:0] b,
+  output reg [15:0] out
 );
   wire [15:0] add_out;
   wire [15:0] sub_out;
@@ -16,26 +16,26 @@ module alu_16bit (
   wire [15:0] shr_out;
 
   adder_16bit add (
-      a,
-      b,
-      add_out
+    a,
+    b,
+    add_out
   );
 
   subtracter_16bit sub (
-      a,
-      b,
-      sub_out
+    a,
+    b,
+    sub_out
   );
 
   always @(*) begin
     case (op)
-      `ALU_OP_ADD: out = add_out;
-      `ALU_OP_SUB: out = sub_out;
-      `ALU_OP_AND: out = a & b;
-      `ALU_OP_OR: out = a | b;
-      `ALU_OP_XOR: out = a ^ b;
-      `ALU_OP_SHL: out = a << b;
-      `ALU_OP_SHR: out = a >> b;
+      `ALU_OP_ADD:   out = add_out;
+      `ALU_OP_SUB:   out = sub_out;
+      `ALU_OP_AND:   out = a & b;
+      `ALU_OP_OR:    out = a | b;
+      `ALU_OP_XOR:   out = a ^ b;
+      `ALU_OP_SHL:   out = a << b;
+      `ALU_OP_SHR:   out = a >> b;
       `ALU_OP_ZEROS: out = 16'd0;
     endcase
   end
@@ -43,21 +43,21 @@ module alu_16bit (
 endmodule
 
 module subtracter_16bit (
-    input  [15:0] a,
-    input  [15:0] b,
-    output [15:0] out
+  input  [15:0] a,
+  input  [15:0] b,
+  output [15:0] out
 );
   wire [15:0] b_ones_compliment = ~b;
   wire [15:0] b_twos_compliment;
   adder_16bit twos_compliment_adder (
-      b_ones_compliment,
-      16'd1,
-      b_twos_compliment
+    b_ones_compliment,
+    16'd1,
+    b_twos_compliment
   );
   adder_16bit adder (
-      a,
-      b_twos_compliment,
-      out
+    a,
+    b_twos_compliment,
+    out
   );
 
 endmodule

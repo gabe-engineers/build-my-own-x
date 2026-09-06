@@ -11,13 +11,13 @@ module decoder_tb;
   wire [ 8:0] address;
 
   decoder dut (
-      instruction_data,
-      opcode,
-      dst_reg,
-      src_reg_a,
-      src_reg_b,
-      immediate,
-      address
+    instruction_data,
+    opcode,
+    dst_reg,
+    src_reg_a,
+    src_reg_b,
+    immediate,
+    address
   );
 
   task test_case(input [7:0] test_number, input [15:0] tc_instruction_data,
@@ -29,7 +29,9 @@ module decoder_tb;
 
       #10;
 
-      if (opcode != expected_opcode || dst_reg != expected_dst_reg || src_reg_a != expected_src_reg_a || src_reg_b != expected_reg_b|| immediate != expected_immediate || address != expected_address) begin
+      if (opcode != expected_opcode || dst_reg != expected_dst_reg ||
+          src_reg_a != expected_src_reg_a || src_reg_b != expected_reg_b ||
+          immediate != expected_immediate || address != expected_address) begin
         $display(
             "Test case #%d failed - instruction_data: %h | got opcode=%h dst_reg=%b src_reg_a=%h src_reg_b=%h immediate=%h address=%h | expected opcode=%h dst_reg=%b src_reg_a=%h src_reg_b=%h immediate=%h address=%h",
             test_number, instruction_data, opcode, dst_reg, src_reg_a, src_reg_b, immediate,

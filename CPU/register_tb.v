@@ -2,18 +2,18 @@
 
 module register_16bit_tb;
 
-  reg reset;
-  reg write_enable;
-  reg clk;
-  reg [15:0] data_in;
+  reg         reset;
+  reg         write_enable;
+  reg         clk;
+  reg  [15:0] data_in;
   wire [15:0] data_out;
 
   register_16bit dut (
-      clk,
-      reset,
-      write_enable,
-      data_in,
-      data_out
+    clk,
+    reset,
+    write_enable,
+    data_in,
+    data_out
   );
 
   task test_case(input tc_reset, input tc_write_enable, input [15:0] tc_data_in,
