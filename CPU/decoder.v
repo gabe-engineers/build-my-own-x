@@ -7,10 +7,23 @@ module decoder (
   output reg [ 2:0] src_reg_a,
   output reg [ 2:0] src_reg_b,
   output reg [15:0] immediate,
-  output reg [ 8:0] address
+  output reg [ 8:0] address,
+  output            is_register_write_op
 );
 
-  assign opcode = instruction_data[15:12];
+  function is_register_write_op(input opcode);
+    begin
+      case (opcode)
+        `OP_ADD, `OP_SUB, `OP_SHL, `OP_SHR, `OP_MUL, `OP_AND, `OP_OR, `OP_XOR, `OP_MOV, `OP_STORE,
+            `OP_LDI:
+        is_register_write_op = 1'b1;
+        `OP_LOAD, `OP_CMP, `OP_JMP, `OP_JZ, `OP_HALT: is_register_write_op = 1'b0;
+      endcase
+    end
+  endfunction
+
+  assign opcode               = instruction_data[15:12];
+  assign is_register_write_op = is_register_write_op(opcode);
 
   always @(*) begin
     dst_reg   = 3'b000;
@@ -18,6 +31,7 @@ module decoder (
     src_reg_b = 3'b000;
     immediate = 16'b0;
     address   = 9'b0;
+
 
     case (opcode)
       `OP_ADD, `OP_SUB, `OP_SHR, `OP_SHL, `OP_MUL, `OP_AND, `OP_OR, `OP_XOR: begin

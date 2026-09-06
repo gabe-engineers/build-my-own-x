@@ -10,18 +10,6 @@ module control_fsm (
   output reg [ 8:0] mem_addr
 );
 
-  function should_enable_datapath_write(input [2:0] state, input opcode);
-    reg is_register_write_op;
-    begin
-      case (opcode)
-        `OP_ADD, `OP_SUB, `OP_SHL, `OP_SHR, `OP_MUL, `OP_AND, `OP_OR, `OP_XOR, `OP_MOV:
-        is_register_write_op = 1'b1;
-        `OP_LDI, `OP_LOAD, `OP_STORE, `OP_CMP, `OP_JMP, `OP_JZ, `OP_HALT:
-        is_register_write_op = 1'b0;
-      endcase
-      should_enable_datapath_write = state == `FSM_EXECUTE && is_register_write_op;
-    end
-  endfunction
 
 
   reg [2:0] state = `FSM_FETCH;
@@ -36,6 +24,8 @@ module control_fsm (
   wire [8:0] pc;
   reg        advance_pc;
   reg        write_enable_pc;
+
+  wire is_register_write_op;
 
   program_counter pc_module (
     .clk         (clk),
@@ -53,13 +43,14 @@ module control_fsm (
     .src_reg_a       (decode_out_src_reg_a),
     .src_reg_b       (decode_out_src_reg_b),
     .immediate       (decode_out_immediate),
-    .address         (decoder_out_address)
+    .address         (decoder_out_address),
+    .is_register_write_op(is_register_write_op)
   );
 
   datapath_16bit datapath_module (
     .clk(clk),
     .reset(reset),
-    .write_enable(should_enable_datapath_write(state, decode_out_opcode)),
+    .write_enable(state == `FSM_EXECUTE && is_register_write_op)),
     .writeback_select(),  // ALU = 0, IMMEDIATE = 1
     .alu_op(),
     .immediate(),
@@ -76,10 +67,6 @@ module control_fsm (
         advance_pc      <= 1'b1;
         write_enable_pc <= 1'b0;
         state           <= `FSM_DECODE;
-      end
-      `FSM_DECODE: begin
-
-
       end
       `FSM_EXECUTE: begin
       end
