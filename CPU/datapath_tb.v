@@ -5,7 +5,7 @@ module datapath_16bit_tb;
   reg         reset;
   reg         write_enable;
   reg         writeback_select;
-  reg  [ 2:0] alu_op;
+  reg  [ 3:0] alu_op;
   reg  [15:0] immediate;
   reg  [ 2:0] read_addr_a;
   reg  [ 2:0] read_addr_b;
@@ -30,7 +30,7 @@ module datapath_16bit_tb;
   );
 
   task test_case(input [15:0] test_number, input tc_reset, input tc_write_enable,
-                 input tc_writeback_select, input [2:0] tc_alu_op, input [15:0] tc_immediate,
+                 input tc_writeback_select, input [3:0] tc_alu_op, input [15:0] tc_immediate,
                  input [2:0] tc_read_addr_a, input [2:0] tc_read_addr_b, input [2:0] tc_write_addr,
                  input [15:0] expected_out);
     begin

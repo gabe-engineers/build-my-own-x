@@ -24,7 +24,7 @@ module register_file (
   assign read_data_a      = data_out[read_addr_a];
   assign read_data_b      = data_out[read_addr_b];
 
-  register_16bit reg1 (
+  register reg1 (
     .clk         (clk),
     .reset       (reset),
     .write_enable(reg_write_enable[0]),
@@ -32,7 +32,7 @@ module register_file (
     .data_out    (data_out[0])
   );
 
-  register_16bit reg2 (
+  register reg2 (
     .clk         (clk),
     .reset       (reset),
     .write_enable(reg_write_enable[1]),
@@ -40,7 +40,7 @@ module register_file (
     .data_out    (data_out[1])
   );
 
-  register_16bit reg3 (
+  register reg3 (
     .clk         (clk),
     .reset       (reset),
     .write_enable(reg_write_enable[2]),
@@ -48,7 +48,7 @@ module register_file (
     .data_out    (data_out[2])
   );
 
-  register_16bit reg4 (
+  register reg4 (
     .clk         (clk),
     .reset       (reset),
     .write_enable(reg_write_enable[3]),
@@ -56,7 +56,7 @@ module register_file (
     .data_out    (data_out[3])
   );
 
-  register_16bit reg5 (
+  register reg5 (
     .clk         (clk),
     .reset       (reset),
     .write_enable(reg_write_enable[4]),
@@ -64,7 +64,7 @@ module register_file (
     .data_out    (data_out[4])
   );
 
-  register_16bit reg6 (
+  register reg6 (
     .clk         (clk),
     .reset       (reset),
     .write_enable(reg_write_enable[5]),
@@ -72,7 +72,7 @@ module register_file (
     .data_out    (data_out[5])
   );
 
-  register_16bit reg7 (
+  register reg7 (
     .clk         (clk),
     .reset       (reset),
     .write_enable(reg_write_enable[6]),
@@ -80,7 +80,7 @@ module register_file (
     .data_out    (data_out[6])
   );
 
-  register_16bit reg8 (
+  register reg8 (
     .clk         (clk),
     .reset       (reset),
     .write_enable(reg_write_enable[7]),

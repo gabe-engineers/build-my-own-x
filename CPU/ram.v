@@ -17,7 +17,7 @@ module memory (
   generate
 
     for (i = 0; i < 512; i = i + 1) begin
-      register_16bit register (
+      register register (
         .clk         (clk),
         .reset       (1'b0),
         .write_enable(write_enable && (address == i)),

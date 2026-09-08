@@ -1,3 +1,6 @@
+`ifndef GATES_V
+`define GATES_V
+
 module or_gate (
   input  a,
   input  b,
@@ -21,3 +24,5 @@ module xor_gate (
 );
   assign out = a ^ b;
 endmodule
+
+`endif

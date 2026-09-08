@@ -1,4 +1,9 @@
-module register_16bit (
+`ifndef REGISTER_V
+`define REGISTER_V
+
+module register #(
+  parameter BITWIDTH = 16
+) (
   input  wire        clk,
   input  wire        reset,
   input  wire        write_enable,
@@ -12,3 +17,5 @@ module register_16bit (
   end
 
 endmodule
+
+`endif

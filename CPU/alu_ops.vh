@@ -1,8 +1,9 @@
-`define ALU_OP_ADD 3'd0
-`define ALU_OP_SUB 3'd1
-`define ALU_OP_AND 3'd2
-`define ALU_OP_OR 3'd3
-`define ALU_OP_XOR 3'd4
-`define ALU_OP_SHL 3'd5
-`define ALU_OP_SHR 3'd6
-`define ALU_OP_ZEROS 3'd7
+`define ALU_OP_ADD 4'b0010
+`define ALU_OP_SUB 4'b0011
+`define ALU_OP_AND 4'b0100
+`define ALU_OP_OR 4'b0101
+`define ALU_OP_XOR 4'b0110
+`define ALU_OP_SHL 4'b0111
+`define ALU_OP_SHR 4'b1000
+`define ALU_OP_MUL 4'b1001
+`define ALU_OP_CMP 4'b1100

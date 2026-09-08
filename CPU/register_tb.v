@@ -1,6 +1,6 @@
 `include "register.v"
 
-module register_16bit_tb;
+module register_tb;
 
   reg         reset;
   reg         write_enable;
@@ -8,7 +8,7 @@ module register_16bit_tb;
   reg  [15:0] data_in;
   wire [15:0] data_out;
 
-  register_16bit dut (
+  register dut (
     clk,
     reset,
     write_enable,

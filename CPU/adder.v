@@ -1,3 +1,6 @@
+`ifndef ADDER_V
+`define ADDER_V
+
 `include "gates.v"
 
 module half_adder (
@@ -17,7 +20,6 @@ module half_adder (
     carry
   );
 endmodule
-
 
 module full_adder (
   input  a,
@@ -73,3 +75,5 @@ module adder_16bit (
   endgenerate
 
 endmodule
+
+`endif

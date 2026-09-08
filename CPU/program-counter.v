@@ -15,10 +15,10 @@ module program_counter (
   wire [15:0] reg_write_enable = write_enable | advance;
   wire [15:0] reg_data_in = write_enable ? write_data : incrementer_out;
 
-  register_16bit register (
+  register register (
     .clk         (clk),
     .reset       (reset),
-    .write_enable(pc_write_enable),
+    .write_enable(reg_write_enable),
     .data_in     (reg_data_in),
     .data_out    (register_out)
   );

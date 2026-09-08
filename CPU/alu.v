@@ -2,7 +2,7 @@
 `include "alu_ops.vh"
 
 module alu_16bit (
-  input      [ 2:0] op,
+  input      [ 3:0] op,
   input      [15:0] a,
   input      [15:0] b,
   output reg [15:0] out
@@ -36,7 +36,6 @@ module alu_16bit (
       `ALU_OP_XOR:   out = a ^ b;
       `ALU_OP_SHL:   out = a << b;
       `ALU_OP_SHR:   out = a >> b;
-      `ALU_OP_ZEROS: out = 16'd0;
     endcase
   end
 
