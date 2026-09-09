@@ -1,4 +1,4 @@
-`include "register-file.v"
+`include "register_file.v"
 
 module register_file_tb;
 

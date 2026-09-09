@@ -1,4 +1,4 @@
-`include "program-counter.v"
+`include "program_counter.v"
 
 module program_counter_tb;
 

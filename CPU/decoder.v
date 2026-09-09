@@ -2,7 +2,7 @@
 
 module decoder (
   input      [15:0] instruction_data,
-  output     [ 4:0] opcode,
+  output     [ 3:0] opcode,
   output reg [ 2:0] dst_reg,
   output reg [ 2:0] src_reg_a,
   output reg [ 2:0] src_reg_b,

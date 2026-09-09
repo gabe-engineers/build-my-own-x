@@ -1,44 +1,57 @@
 `include "fsm_states.vh"
+`include "control_unit.v"
+`include "datapath.v"
 
 module cpu (
-  input  wire        clk,
-  input  wire        reset,
-  input  wire [15:0] mem_read_data,
-  output wire [ 8:0] mem_address,
-  output wire [15:0] mem_write_data,
-  output wire        mem_write_enable,
-  output wire        halted
+    input  wire        clk,
+    input  wire        reset,
+    input  wire [15:0] mem_read_data,
+    output wire [ 8:0] mem_address,
+    output wire [15:0] mem_write_data,
+    output wire        mem_write_enable,
+    output wire        halted
 );
 
-  wire datapath_src_reg_a;
+  wire [2:0] datapath_src_reg_a;
+  wire [2:0] datapath_src_reg_b;
+  wire [2:0] datapath_dst_reg;
+  wire datapath_write_enable;
+  wire datapath_writeback_select;
+  wire [3:0] alu_op;
+  wire [15:0] datapath_immediate;
+  wire [15:0] datapath_out;
+  wire [15:0] datapath_read_data_a;
+  wire [15:0] datapath_read_data_b;
 
   control_unit control_unit_module (
-    .clk                      (clk),
-    .reset                    (reset),
-    .pc                       (pc),
-    .mem_read_data            (),
-    .datapath_write_enable    (),
-    .datapath_writeback_select(),
-    .alu_op                   (),
-    .datapath_immediate       (),
-    .datapath_src_reg_a       (decode_out_src_reg_a),
-    .datapath_src_reg_b       (decode_out_src_reg_b),
-    .datapath_dst_reg         (decode_out_dst_reg)
+      .clk                      (clk),
+      .reset                    (reset),
+      .mem_read_data            (mem_read_data),
+      .mem_read_addr            (mem_address),
+      .mem_write_enable         (mem_write_enable),
+      .mem_write_data           (),
+      .datapath_write_enable    (datapath_write_enable),
+      .datapath_writeback_select(datapath_writeback_select),
+      .alu_op                   (alu_op),
+      .datapath_immediate       (datapath_immediate),
+      .datapath_src_reg_a       (datapath_src_reg_a),
+      .datapath_src_reg_b       (datapath_src_reg_b),
+      .datapath_dst_reg         (datapath_dst_reg)
   );
 
   datapath_16bit datapath (
-    .clk(clk),
-    .reset(reset),
-    .write_enable(is_register_write_op(ir)),
-    .writeback_select(),
-    .alu_op(),
-    .immediate(decode_out_opcode == `OP_LOAD && state == MEMORY ? mem_read_data :
-               decode_out_immediate),
-    .read_addr_a(decode_out_src_reg_a),
-    .read_addr_b(decode_out_src_reg_b),
-    .write_addr(decode_out_dst_reg),
-    .out(datapath_out)
-    .read_data_a(datapath_src_reg_a)
+      .clk(clk),
+      .reset(reset),
+      .write_enable(datapath_write_enable),
+      .writeback_select(datapath_writeback_select),
+      .alu_op(alu_op),
+      .immediate(datapath_immediate),
+      .read_addr_a(datapath_src_reg_a),
+      .read_addr_b(datapath_src_reg_b),
+      .write_addr(datapath_dst_reg),
+      .out(datapath_out),
+      .read_data_a(datapath_read_data_a),
+      .read_data_b(datapath_read_data_b)
   );
 
 endmodule
