@@ -19,7 +19,6 @@ module cpu (
   wire datapath_writeback_select;
   wire [3:0] alu_op;
   wire [15:0] datapath_immediate;
-  wire [15:0] datapath_out;
   wire [15:0] datapath_read_data_a;
   wire [15:0] datapath_read_data_b;
 
@@ -29,14 +28,14 @@ module cpu (
       .mem_read_data            (mem_read_data),
       .mem_read_addr            (mem_address),
       .mem_write_enable         (mem_write_enable),
-      .mem_write_data           (),
       .datapath_write_enable    (datapath_write_enable),
       .datapath_writeback_select(datapath_writeback_select),
       .alu_op                   (alu_op),
       .datapath_immediate       (datapath_immediate),
       .datapath_src_reg_a       (datapath_src_reg_a),
       .datapath_src_reg_b       (datapath_src_reg_b),
-      .datapath_dst_reg         (datapath_dst_reg)
+      .datapath_dst_reg         (datapath_dst_reg),
+      .halted                   (halted)
   );
 
   datapath_16bit datapath (
@@ -49,9 +48,7 @@ module cpu (
       .read_addr_a(datapath_src_reg_a),
       .read_addr_b(datapath_src_reg_b),
       .write_addr(datapath_dst_reg),
-      .out(datapath_out),
-      .read_data_a(datapath_read_data_a),
-      .read_data_b(datapath_read_data_b)
+      .write_reg_data(mem_write_data)
   );
 
 endmodule

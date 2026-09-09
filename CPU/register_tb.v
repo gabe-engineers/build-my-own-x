@@ -9,11 +9,11 @@ module register_tb;
   wire [15:0] data_out;
 
   register dut (
-    clk,
-    reset,
-    write_enable,
-    data_in,
-    data_out
+      clk,
+      reset,
+      write_enable,
+      data_in,
+      data_out
   );
 
   task test_case(input tc_reset, input tc_write_enable, input [15:0] tc_data_in,
@@ -37,32 +37,45 @@ module register_tb;
   initial begin
     clk = 0;
 
+    // Initial state has registers initialized to zero
+    test_case(.tc_reset(1'b0), .tc_write_enable(1'b0), .tc_data_in(16'hAAAA),
+              .expected_out(16'h0000));
+
     // Reset should initialize register to zero
-    test_case(1'b1, 1'b0, 16'hAAAA, 16'h0000);
+    test_case(.tc_reset(1'b1), .tc_write_enable(1'b0), .tc_data_in(16'hAAAA),
+              .expected_out(16'h0000));
 
     // Normal write
-    test_case(1'b0, 1'b1, 16'h4242, 16'h4242);
+    test_case(.tc_reset(1'b0), .tc_write_enable(1'b1), .tc_data_in(16'h4242),
+              .expected_out(16'h4242));
 
     // Write disabled: should retain old value
-    test_case(1'b0, 1'b0, 16'h9999, 16'h4242);
+    test_case(.tc_reset(1'b0), .tc_write_enable(1'b0), .tc_data_in(16'h9999),
+              .expected_out(16'h4242));
 
     // Write another value
-    test_case(1'b0, 1'b1, 16'hFFFF, 16'hFFFF);
+    test_case(.tc_reset(1'b0), .tc_write_enable(1'b1), .tc_data_in(16'hFFFF),
+              .expected_out(16'hFFFF));
 
     // Hold again
-    test_case(1'b0, 1'b0, 16'h0000, 16'hFFFF);
+    test_case(.tc_reset(1'b0), .tc_write_enable(1'b0), .tc_data_in(16'h0000),
+              .expected_out(16'hFFFF));
 
     // Writing zero should actually write zero
-    test_case(1'b0, 1'b1, 16'h0000, 16'h0000);
+    test_case(.tc_reset(1'b0), .tc_write_enable(1'b1), .tc_data_in(16'h0000),
+              .expected_out(16'h0000));
 
     // Another arbitrary pattern
-    test_case(1'b0, 1'b1, 16'b1010101010101010, 16'b1010101010101010);
+    test_case(.tc_reset(1'b0), .tc_write_enable(1'b1), .tc_data_in(16'b1010101010101010),
+              .expected_out(16'b1010101010101010));
 
     // Reset should override write_enable
-    test_case(1'b1, 1'b1, 16'hFFFF, 16'h0000);
+    test_case(.tc_reset(1'b1), .tc_write_enable(1'b1), .tc_data_in(16'hFFFF),
+              .expected_out(16'h0000));
 
     // After reset, disabled write should retain zero
-    test_case(1'b0, 1'b0, 16'hCCCC, 16'h0000);
+    test_case(.tc_reset(1'b0), .tc_write_enable(1'b0), .tc_data_in(16'hCCCC),
+              .expected_out(16'h0000));
 
     $display("Tests finished");
     $finish;

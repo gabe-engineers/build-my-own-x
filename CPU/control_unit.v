@@ -8,14 +8,14 @@ module control_unit (
     input [15:0] mem_read_data,
     output [8:0] mem_read_addr,
     output mem_write_enable,
-    output [15:0] mem_write_data,
     output datapath_write_enable,
     output datapath_writeback_select,
     output [3:0] alu_op,
     output [15:0] datapath_immediate,
     output [2:0] datapath_src_reg_a,
     output [2:0] datapath_src_reg_b,
-    output [2:0] datapath_dst_reg
+    output [2:0] datapath_dst_reg,
+    output halted
 );
 
   wire [15:0] pc;
@@ -34,7 +34,7 @@ module control_unit (
 
   wire [15:0] ir;
 
-  wire [15:0] datapath_out;
+  wire [15:0] datapath_write_reg_data;
 
   register ir_module (
       .clk         (clk),
@@ -81,6 +81,13 @@ module control_unit (
     end
   endfunction
 
+  function is_immediate_writeback_op(input [3:0] opcode);
+    begin
+      if (opcode == `OP_LOAD || opcode == `OP_LDI) is_immediate_writeback_op = 1'b1;
+      else is_immediate_writeback_op = 1'b0;
+    end
+  endfunction
+
   assign datapath_immediate = decoder_out_opcode == `OP_LOAD && fsm_out_state == `FSM_MEMORY ? mem_read_data : decoder_out_immediate;
 
   assign datapath_write_enable = is_register_write_op(decoder_out_opcode);
@@ -92,5 +99,16 @@ module control_unit (
   assign write_enable_pc = fsm_out_state == `FSM_EXECUTE && (decoder_out_opcode == `OP_JZ || decoder_out_opcode == `OP_JMP);
 
   assign mem_write_enable = fsm_out_state == `FSM_EXECUTE && decoder_out_opcode == `OP_STORE;
+
+  assign datapath_src_reg_a = decoder_out_src_reg_a;
+
+  assign datapath_src_reg_b = decoder_out_src_reg_b;
+
+  assign datapath_dst_reg = decoder_out_dst_reg;
+
+  assign halted = fsm_out_state == `FSM_HALT;
+
+  assign datapath_writeback_select = is_immediate_writeback_op(decoder_out_opcode);
+
 
 endmodule

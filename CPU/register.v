@@ -2,13 +2,13 @@
 `define REGISTER_V
 
 module register #(
-  parameter BITWIDTH = 16
+    parameter BITWIDTH = 16
 ) (
-  input  wire        clk,
-  input  wire        reset,
-  input  wire        write_enable,
-  input  wire [15:0] data_in,
-  output reg  [15:0] data_out
+    input  wire        clk,
+    input  wire        reset,
+    input  wire        write_enable,
+    input  wire [15:0] data_in,
+    output reg  [15:0] data_out = 16'b0
 );
 
   always @(posedge clk) begin

@@ -11,13 +11,13 @@ module cpu_tb;
   wire        halted;
 
   cpu dut (
-      clk,
-      reset,
-      mem_read_data,
-      mem_address,
-      mem_write_data,
-      mem_write_enable,
-      halted
+      .clk             (clk),
+      .reset           (reset),
+      .mem_read_data   (mem_read_data),
+      .mem_address     (mem_address),
+      .mem_write_data  (mem_write_data),
+      .mem_write_enable(mem_write_enable),
+      .halted          (halted)
   );
 
   task test_case(input [7:0] test_number, input [15:0] tc_instruction, input [15:0] tc_load_data,
@@ -29,16 +29,19 @@ module cpu_tb;
     begin
       mem_read_data = tc_instruction;
 
+      // FETCH
       clk = 0;
       #10;
       clk = 1;
       #10;
 
+      // DECODE and EXECUTE
       clk = 0;
       #10;
       clk = 1;
       #10;
 
+      // extra MEMORY cycle
       if (tc_instruction[15:12] == `OP_LOAD || tc_instruction[15:12] == `OP_STORE) begin
         clk = 0;
         mem_read_data = tc_load_data;
@@ -81,18 +84,30 @@ module cpu_tb;
     reset = 0;
 
     // LDI R1, 0x05A
-    test_case(1, {`OP_LDI, 3'd1, 9'h05A}, 16'b0, 1'b0, 9'b0, 16'b0, 1'b0);
+    test_case(.test_number(1), .tc_instruction({`OP_LDI, 3'd1, 9'h05A}), .tc_load_data(16'b0),
+              .expected_mem_write_enable(1'b0), .expected_mem_address(9'b0),
+              .expected_mem_write_data(16'b0), .expected_halted(1'b0));
+
+    $stop;
 
     // STORE R1, [100] proves that LDI wrote 0x05A to R1.
-    test_case(2, {`OP_STORE, 3'd1, 9'd100}, 16'b0, 1'b1, 9'd100, 16'h005A, 1'b0);
+    test_case(.test_number(2), .tc_instruction({`OP_STORE, 3'd1, 9'd100}), .tc_load_data(16'b0),
+              .expected_mem_write_enable(1'b1), .expected_mem_address(9'd100),
+              .expected_mem_write_data(16'h005A), .expected_halted(1'b0));
 
     // LOAD R2, [100] using the value previously produced by LDI.
-    test_case(3, {`OP_LOAD, 3'd2, 9'd100}, 16'h005A, 1'b0, 9'd100, 16'b0, 1'b0);
+    test_case(.test_number(3), .tc_instruction({`OP_LOAD, 3'd2, 9'd100}), .tc_load_data(16'h005A),
+              .expected_mem_write_enable(1'b0), .expected_mem_address(9'd100),
+              .expected_mem_write_data(16'b0), .expected_halted(1'b0));
 
     // STORE R2, [101] proves that LOAD wrote 0x05A to R2.
-    test_case(4, {`OP_STORE, 3'd2, 9'd101}, 16'b0, 1'b1, 9'd101, 16'h005A, 1'b0);
+    test_case(.test_number(4), .tc_instruction({`OP_STORE, 3'd2, 9'd101}), .tc_load_data(16'b0),
+              .expected_mem_write_enable(1'b1), .expected_mem_address(9'd101),
+              .expected_mem_write_data(16'h005A), .expected_halted(1'b0));
 
-    test_case(5, {`OP_HALT, 12'b0}, 16'b0, 1'b0, 9'b0, 16'b0, 1'b1);
+    test_case(.test_number(5), .tc_instruction({`OP_HALT, 12'b0}), .tc_load_data(16'b0),
+              .expected_mem_write_enable(1'b0), .expected_mem_address(9'b0),
+              .expected_mem_write_data(16'b0), .expected_halted(1'b1));
 
     $finish;
   end
